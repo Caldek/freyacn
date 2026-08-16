@@ -1,0 +1,1 @@
+FreyaCN components registry repSo
