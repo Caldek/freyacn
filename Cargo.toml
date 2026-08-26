@@ -3,5 +3,10 @@ name = "freyacn"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+hotreload = ["freya/hotreload"]
+
 [dependencies]
-freya = "0.4.1"
+freya = { version = "0.4.1", features = ["icons"] }
+freya-core = "0.4.1"
+freya-icons = { version = "0.4.1", features = ["lucide"] }
