@@ -1,25 +1,30 @@
 use crate::core::theme::Theme;
 use freya::prelude::Color;
 
+/// Macro to generate background color methods for every palette color.
+/// Each generated method takes a `&Theme` and calls `self.background(theme.colors.$field)`.
 macro_rules! bg_color {
     ($(
         $method:ident => $field:ident
     ),* $(,)?) => {
         $(
-            fn $method(self) -> Self {
-                let color = self.theme().colors.$field.clone();
-                self.background(color)
+            fn $method(self, theme: &Theme) -> Self {
+                self.background(theme.colors.$field)
             }
         )*
     };
 }
 
 pub trait CNExt: Sized {
-    fn theme(&self) -> &Theme;
-
+    /// Set the background color explicitly.
     fn background(self, color: Color) -> Self;
 
+    // --------------------------------------------------------------
+    // Palette background helpers – covers ALL colors in `Colors`.
+    // --------------------------------------------------------------
+
     bg_color! {
+        // Neutrals
         bg_slate_50 => slate_50,
         bg_slate_100 => slate_100,
         bg_slate_200 => slate_200,
@@ -68,6 +73,68 @@ pub trait CNExt: Sized {
         bg_neutral_900 => neutral_900,
         bg_neutral_950 => neutral_950,
 
+        // Stone, Mauve, Olive, Mist, Taupe – newly added
+        bg_stone_50 => stone_50,
+        bg_stone_100 => stone_100,
+        bg_stone_200 => stone_200,
+        bg_stone_300 => stone_300,
+        bg_stone_400 => stone_400,
+        bg_stone_500 => stone_500,
+        bg_stone_600 => stone_600,
+        bg_stone_700 => stone_700,
+        bg_stone_800 => stone_800,
+        bg_stone_900 => stone_900,
+        bg_stone_950 => stone_950,
+
+        bg_mauve_50 => mauve_50,
+        bg_mauve_100 => mauve_100,
+        bg_mauve_200 => mauve_200,
+        bg_mauve_300 => mauve_300,
+        bg_mauve_400 => mauve_400,
+        bg_mauve_500 => mauve_500,
+        bg_mauve_600 => mauve_600,
+        bg_mauve_700 => mauve_700,
+        bg_mauve_800 => mauve_800,
+        bg_mauve_900 => mauve_900,
+        bg_mauve_950 => mauve_950,
+
+        bg_olive_50 => olive_50,
+        bg_olive_100 => olive_100,
+        bg_olive_200 => olive_200,
+        bg_olive_300 => olive_300,
+        bg_olive_400 => olive_400,
+        bg_olive_500 => olive_500,
+        bg_olive_600 => olive_600,
+        bg_olive_700 => olive_700,
+        bg_olive_800 => olive_800,
+        bg_olive_900 => olive_900,
+        bg_olive_950 => olive_950,
+
+        bg_mist_50 => mist_50,
+        bg_mist_100 => mist_100,
+        bg_mist_200 => mist_200,
+        bg_mist_300 => mist_300,
+        bg_mist_400 => mist_400,
+        bg_mist_500 => mist_500,
+        bg_mist_600 => mist_600,
+        bg_mist_700 => mist_700,
+        bg_mist_800 => mist_800,
+        bg_mist_900 => mist_900,
+        bg_mist_950 => mist_950,
+
+        bg_taupe_50 => taupe_50,
+        bg_taupe_100 => taupe_100,
+        bg_taupe_200 => taupe_200,
+        bg_taupe_300 => taupe_300,
+        bg_taupe_400 => taupe_400,
+        bg_taupe_500 => taupe_500,
+        bg_taupe_600 => taupe_600,
+        bg_taupe_700 => taupe_700,
+        bg_taupe_800 => taupe_800,
+        bg_taupe_900 => taupe_900,
+        bg_taupe_950 => taupe_950,
+
+        // Accent colors
         bg_red_50 => red_50,
         bg_red_100 => red_100,
         bg_red_200 => red_200,
@@ -273,141 +340,100 @@ pub trait CNExt: Sized {
         bg_rose_950 => rose_950,
     }
 
-    // ---------------------------------------------------------------------
-    // Semantic theme colors
-    // ---------------------------------------------------------------------
+    // --------------------------------------------------------------
+    // Semantic theme colors – map directly to Theme fields.
+    // --------------------------------------------------------------
 
-    fn bg_background(self) -> Self {
-        let color = self.theme().background.clone();
-        self.background(color)
+    fn bg_background(self, theme: &Theme) -> Self {
+        self.background(theme.background)
+    }
+    fn bg_foreground(self, theme: &Theme) -> Self {
+        self.background(theme.foreground)
     }
 
-    fn bg_foreground(self) -> Self {
-        let color = self.theme().foreground.clone();
-        self.background(color)
+    fn bg_primary(self, theme: &Theme) -> Self {
+        self.background(theme.primary)
+    }
+    fn bg_primary_foreground(self, theme: &Theme) -> Self {
+        self.background(theme.primary_foreground)
     }
 
-    fn bg_primary(self) -> Self {
-        let color = self.theme().primary.clone();
-        self.background(color)
+    fn bg_secondary(self, theme: &Theme) -> Self {
+        self.background(theme.secondary)
+    }
+    fn bg_secondary_foreground(self, theme: &Theme) -> Self {
+        self.background(theme.secondary_foreground)
     }
 
-    fn bg_primary_foreground(self) -> Self {
-        let color = self.theme().primary_foreground.clone();
-        self.background(color)
+    fn bg_muted(self, theme: &Theme) -> Self {
+        self.background(theme.muted)
+    }
+    fn bg_muted_foreground(self, theme: &Theme) -> Self {
+        self.background(theme.muted_foreground)
     }
 
-    fn bg_secondary(self) -> Self {
-        let color = self.theme().secondary.clone();
-        self.background(color)
+    fn bg_accent(self, theme: &Theme) -> Self {
+        self.background(theme.accent)
+    }
+    fn bg_accent_foreground(self, theme: &Theme) -> Self {
+        self.background(theme.accent_foreground)
     }
 
-    fn bg_secondary_foreground(self) -> Self {
-        let color = self.theme().secondary_foreground.clone();
-        self.background(color)
+    fn bg_destructive(self, theme: &Theme) -> Self {
+        self.background(theme.destructive)
+    }
+    fn bg_destructive_foreground(self, theme: &Theme) -> Self {
+        self.background(theme.destructive_foreground)
     }
 
-    fn bg_muted(self) -> Self {
-        let color = self.theme().muted.clone();
-        self.background(color)
+    fn bg_card(self, theme: &Theme) -> Self {
+        self.background(theme.card)
+    }
+    fn bg_card_foreground(self, theme: &Theme) -> Self {
+        self.background(theme.card_foreground)
     }
 
-    fn bg_muted_foreground(self) -> Self {
-        let color = self.theme().muted_foreground.clone();
-        self.background(color)
+    fn bg_popover(self, theme: &Theme) -> Self {
+        self.background(theme.popover)
+    }
+    fn bg_popover_foreground(self, theme: &Theme) -> Self {
+        self.background(theme.popover_foreground)
     }
 
-    fn bg_accent(self) -> Self {
-        let color = self.theme().accent.clone();
-        self.background(color)
+    fn bg_border(self, theme: &Theme) -> Self {
+        self.background(theme.border)
+    }
+    fn bg_input(self, theme: &Theme) -> Self {
+        self.background(theme.input)
+    }
+    fn bg_ring(self, theme: &Theme) -> Self {
+        self.background(theme.ring)
     }
 
-    fn bg_accent_foreground(self) -> Self {
-        let color = self.theme().accent_foreground.clone();
-        self.background(color)
+    fn bg_chart_1(self, theme: &Theme) -> Self {
+        self.background(theme.chart_1)
+    }
+    fn bg_chart_2(self, theme: &Theme) -> Self {
+        self.background(theme.chart_2)
+    }
+    fn bg_chart_3(self, theme: &Theme) -> Self {
+        self.background(theme.chart_3)
+    }
+    fn bg_chart_4(self, theme: &Theme) -> Self {
+        self.background(theme.chart_4)
+    }
+    fn bg_chart_5(self, theme: &Theme) -> Self {
+        self.background(theme.chart_5)
     }
 
-    fn bg_destructive(self) -> Self {
-        let color = self.theme().destructive.clone();
-        self.background(color)
-    }
-
-    fn bg_destructive_foreground(self) -> Self {
-        let color = self.theme().destructive_foreground.clone();
-        self.background(color)
-    }
-
-    fn bg_card(self) -> Self {
-        let color = self.theme().card.clone();
-        self.background(color)
-    }
-
-    fn bg_card_foreground(self) -> Self {
-        let color = self.theme().card_foreground.clone();
-        self.background(color)
-    }
-
-    fn bg_popover(self) -> Self {
-        let color = self.theme().popover.clone();
-        self.background(color)
-    }
-
-    fn bg_popover_foreground(self) -> Self {
-        let color = self.theme().popover_foreground.clone();
-        self.background(color)
-    }
-
-    fn bg_border(self) -> Self {
-        let color = self.theme().border.clone();
-        self.background(color)
-    }
-
-    fn bg_input(self) -> Self {
-        let color = self.theme().input.clone();
-        self.background(color)
-    }
-
-    fn bg_ring(self) -> Self {
-        let color = self.theme().ring.clone();
-        self.background(color)
-    }
-
-    fn bg_chart_1(self) -> Self {
-        let color = self.theme().chart_1.clone();
-        self.background(color)
-    }
-
-    fn bg_chart_2(self) -> Self {
-        let color = self.theme().chart_2.clone();
-        self.background(color)
-    }
-
-    fn bg_chart_3(self) -> Self {
-        let color = self.theme().chart_3.clone();
-        self.background(color)
-    }
-
-    fn bg_chart_4(self) -> Self {
-        let color = self.theme().chart_4.clone();
-        self.background(color)
-    }
-
-    fn bg_chart_5(self) -> Self {
-        let color = self.theme().chart_5.clone();
-        self.background(color)
-    }
-
-    // ---------------------------------------------------------------------
+    // --------------------------------------------------------------
     // Literal colors
-    // ---------------------------------------------------------------------
+    // --------------------------------------------------------------
 
-    fn bg_white(self) -> Self {
-        let color = self.theme().colors.white.clone();
-        self.background(color)
+    fn bg_white(self, theme: &Theme) -> Self {
+        self.background(theme.colors.white)
     }
-
-    fn bg_black(self) -> Self {
-        let color = self.theme().colors.black.clone();
-        self.background(color)
+    fn bg_black(self, theme: &Theme) -> Self {
+        self.background(theme.colors.black)
     }
 }

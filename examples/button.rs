@@ -9,7 +9,7 @@ fn main() {
 }
 
 fn app() -> impl IntoElement {
-    let theme = CNTheme::light();
+    let theme = CNTheme::neutral(false, "neutral");
 
     provide_root_context(theme);
 
@@ -22,8 +22,8 @@ fn app() -> impl IntoElement {
             rect()
                 .spacing(12.0)
                 .child(label().font_size(24.0).text("Button"))
+                .child(Button().label("Default"))
                 .child(Button().label("Small").size_sm())
-                .child(Button().label("Default").outline())
                 .child(Button().label("Extra Small").destructive().size_xs())
                 .child(Button().label("Large").secondary().size_lg())
                 .child(

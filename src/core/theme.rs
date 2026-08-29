@@ -1,20 +1,81 @@
 use freya::prelude::*;
 
 /// Convert an RGB tuple into a Freya Color.
-///
-/// Freya 0.4.1 accepts RGB tuples anywhere a Color is expected.
 const fn rgb(r: u8, g: u8, b: u8) -> Color {
     Color::from_rgb(r, g, b)
 }
 
-/// Complete FreyaCN color palette.
-///
-/// These are based on the Tailwind/shadcn-style palette.
+/// Complete FreyaCN color palette (Tailwind/shadcn style).
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Colors {
     // basic colors
     pub white: Color,
     pub black: Color,
+
+    // Stone
+    pub stone_50: Color,
+    pub stone_100: Color,
+    pub stone_200: Color,
+    pub stone_300: Color,
+    pub stone_400: Color,
+    pub stone_500: Color,
+    pub stone_600: Color,
+    pub stone_700: Color,
+    pub stone_800: Color,
+    pub stone_900: Color,
+    pub stone_950: Color,
+
+    // Mauve
+    pub mauve_50: Color,
+    pub mauve_100: Color,
+    pub mauve_200: Color,
+    pub mauve_300: Color,
+    pub mauve_400: Color,
+    pub mauve_500: Color,
+    pub mauve_600: Color,
+    pub mauve_700: Color,
+    pub mauve_800: Color,
+    pub mauve_900: Color,
+    pub mauve_950: Color,
+
+    // Olive
+    pub olive_50: Color,
+    pub olive_100: Color,
+    pub olive_200: Color,
+    pub olive_300: Color,
+    pub olive_400: Color,
+    pub olive_500: Color,
+    pub olive_600: Color,
+    pub olive_700: Color,
+    pub olive_800: Color,
+    pub olive_900: Color,
+    pub olive_950: Color,
+
+    // Mist
+    pub mist_50: Color,
+    pub mist_100: Color,
+    pub mist_200: Color,
+    pub mist_300: Color,
+    pub mist_400: Color,
+    pub mist_500: Color,
+    pub mist_600: Color,
+    pub mist_700: Color,
+    pub mist_800: Color,
+    pub mist_900: Color,
+    pub mist_950: Color,
+
+    // Taupe
+    pub taupe_50: Color,
+    pub taupe_100: Color,
+    pub taupe_200: Color,
+    pub taupe_300: Color,
+    pub taupe_400: Color,
+    pub taupe_500: Color,
+    pub taupe_600: Color,
+    pub taupe_700: Color,
+    pub taupe_800: Color,
+    pub taupe_900: Color,
+    pub taupe_950: Color,
 
     // Slate
     pub slate_50: Color,
@@ -297,6 +358,71 @@ impl Colors {
             white: rgb(255, 255, 255),
             black: rgb(0, 0, 0),
 
+            // Stone
+            stone_50: rgb(250, 250, 249),
+            stone_100: rgb(245, 245, 244),
+            stone_200: rgb(231, 229, 228),
+            stone_300: rgb(214, 211, 209),
+            stone_400: rgb(166, 160, 155),
+            stone_500: rgb(121, 113, 107),
+            stone_600: rgb(87, 83, 77),
+            stone_700: rgb(68, 64, 59),
+            stone_800: rgb(41, 37, 36),
+            stone_900: rgb(28, 25, 23),
+            stone_950: rgb(12, 10, 9),
+
+            // Mauve
+            mauve_50: rgb(250, 250, 250),
+            mauve_100: rgb(243, 241, 243),
+            mauve_200: rgb(231, 228, 231),
+            mauve_300: rgb(215, 208, 215),
+            mauve_400: rgb(168, 158, 169),
+            mauve_500: rgb(121, 105, 123),
+            mauve_600: rgb(89, 76, 91),
+            mauve_700: rgb(70, 57, 71),
+            mauve_800: rgb(42, 33, 44),
+            mauve_900: rgb(29, 22, 30),
+            mauve_950: rgb(12, 9, 12),
+
+            // Olive
+            olive_50: rgb(251, 251, 249),
+            olive_100: rgb(244, 244, 240),
+            olive_200: rgb(232, 232, 227),
+            olive_300: rgb(216, 216, 208),
+            olive_400: rgb(171, 171, 156),
+            olive_500: rgb(124, 124, 103),
+            olive_600: rgb(91, 91, 75),
+            olive_700: rgb(71, 71, 57),
+            olive_800: rgb(43, 43, 34),
+            olive_900: rgb(29, 29, 22),
+            olive_950: rgb(12, 12, 9),
+
+            // Mist
+            mist_50: rgb(249, 251, 251),
+            mist_100: rgb(241, 243, 243),
+            mist_200: rgb(227, 231, 232),
+            mist_300: rgb(208, 214, 216),
+            mist_400: rgb(156, 168, 171),
+            mist_500: rgb(103, 120, 124),
+            mist_600: rgb(75, 88, 91),
+            mist_700: rgb(57, 68, 71),
+            mist_800: rgb(34, 41, 43),
+            mist_900: rgb(22, 27, 29),
+            mist_950: rgb(9, 11, 12),
+
+            // Taupe
+            taupe_50: rgb(251, 250, 249),
+            taupe_100: rgb(243, 241, 241),
+            taupe_200: rgb(232, 228, 227),
+            taupe_300: rgb(216, 210, 208),
+            taupe_400: rgb(171, 160, 156),
+            taupe_500: rgb(124, 109, 103),
+            taupe_600: rgb(91, 79, 75),
+            taupe_700: rgb(71, 60, 57),
+            taupe_800: rgb(43, 36, 34),
+            taupe_900: rgb(29, 24, 22),
+            taupe_950: rgb(12, 10, 9),
+
             // Slate
             slate_50: rgb(248, 250, 252),
             slate_100: rgb(241, 245, 249),
@@ -578,13 +704,10 @@ impl Default for Colors {
         Self::new()
     }
 }
-
 /// Semantic FreyaCN theme.
-///
-/// Components should generally use these semantic colors instead
-/// of directly depending on the palette.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Theme {
+    pub is_dark: bool,
     pub colors: Colors,
 
     pub background: Color,
@@ -623,92 +746,402 @@ pub struct Theme {
 }
 
 impl Theme {
-    /// shadcn-style light theme.
-    pub fn light() -> Self {
+    /// Helper to get the luminance of a color (0.0 – 1.0).
+    fn luminance(color: Color) -> f32 {
+        let r = color.r() as f32 / 255.0;
+        let g = color.g() as f32 / 255.0;
+        let b = color.b() as f32 / 255.0;
+        0.299 * r + 0.587 * g + 0.114 * b
+    }
+
+    /// Build a theme from a base (neutral) palette.
+    pub fn base_color(base: &str, dark: bool) -> Self {
         let colors = Colors::default();
+        let (bg, fg, muted, muted_fg, border, input, card, popover, secondary, secondary_fg) =
+            if dark {
+                match base {
+                    "slate" => (
+                        colors.slate_950,
+                        colors.slate_50,
+                        colors.slate_800,
+                        colors.slate_400,
+                        colors.slate_800,
+                        colors.slate_800,
+                        colors.slate_950,
+                        colors.slate_950,
+                        colors.slate_800,
+                        colors.slate_50,
+                    ),
+                    "stone" => (
+                        colors.stone_950,
+                        colors.stone_50,
+                        colors.stone_800,
+                        colors.stone_400,
+                        colors.stone_800,
+                        colors.stone_800,
+                        colors.stone_950,
+                        colors.stone_950,
+                        colors.stone_800,
+                        colors.stone_50,
+                    ),
+                    "mauve" => (
+                        colors.mauve_950,
+                        colors.mauve_50,
+                        colors.mauve_800,
+                        colors.mauve_400,
+                        colors.mauve_800,
+                        colors.mauve_800,
+                        colors.mauve_950,
+                        colors.mauve_950,
+                        colors.mauve_800,
+                        colors.mauve_50,
+                    ),
+                    "olive" => (
+                        colors.olive_950,
+                        colors.olive_50,
+                        colors.olive_800,
+                        colors.olive_400,
+                        colors.olive_800,
+                        colors.olive_800,
+                        colors.olive_950,
+                        colors.olive_950,
+                        colors.olive_800,
+                        colors.olive_50,
+                    ),
+                    "mist" => (
+                        colors.mist_950,
+                        colors.mist_50,
+                        colors.mist_800,
+                        colors.mist_400,
+                        colors.mist_800,
+                        colors.mist_800,
+                        colors.mist_950,
+                        colors.mist_950,
+                        colors.mist_800,
+                        colors.mist_50,
+                    ),
+                    "taupe" => (
+                        colors.taupe_950,
+                        colors.taupe_50,
+                        colors.taupe_800,
+                        colors.taupe_400,
+                        colors.taupe_800,
+                        colors.taupe_800,
+                        colors.taupe_950,
+                        colors.taupe_950,
+                        colors.taupe_800,
+                        colors.taupe_50,
+                    ),
+                    "zinc" => (
+                        colors.zinc_950,
+                        colors.zinc_50,
+                        colors.zinc_800,
+                        colors.zinc_400,
+                        colors.zinc_800,
+                        colors.zinc_800,
+                        colors.zinc_950,
+                        colors.zinc_950,
+                        colors.zinc_800,
+                        colors.zinc_50,
+                    ),
+                    "neutral" => (
+                        colors.neutral_950,
+                        colors.neutral_50,
+                        colors.neutral_800,
+                        colors.neutral_400,
+                        colors.neutral_800,
+                        colors.neutral_800,
+                        colors.neutral_950,
+                        colors.neutral_950,
+                        colors.neutral_800,
+                        colors.neutral_50,
+                    ),
+                    _ => panic!("Unknown base palette: {}", base),
+                }
+            } else {
+                match base {
+                    "slate" => (
+                        colors.slate_50,
+                        colors.slate_950,
+                        colors.slate_100,
+                        colors.slate_500,
+                        colors.slate_200,
+                        colors.slate_200,
+                        colors.white,
+                        colors.white,
+                        colors.slate_100,
+                        colors.slate_900,
+                    ),
+                    "stone" => (
+                        colors.stone_50,
+                        colors.stone_950,
+                        colors.stone_100,
+                        colors.stone_500,
+                        colors.stone_200,
+                        colors.stone_200,
+                        colors.white,
+                        colors.white,
+                        colors.stone_100,
+                        colors.stone_900,
+                    ),
+                    "mauve" => (
+                        colors.mauve_50,
+                        colors.mauve_950,
+                        colors.mauve_100,
+                        colors.mauve_500,
+                        colors.mauve_200,
+                        colors.mauve_200,
+                        colors.white,
+                        colors.white,
+                        colors.mauve_100,
+                        colors.mauve_900,
+                    ),
+                    "olive" => (
+                        colors.olive_50,
+                        colors.olive_950,
+                        colors.olive_100,
+                        colors.olive_500,
+                        colors.olive_200,
+                        colors.olive_200,
+                        colors.white,
+                        colors.white,
+                        colors.olive_100,
+                        colors.olive_900,
+                    ),
+                    "mist" => (
+                        colors.mist_50,
+                        colors.mist_950,
+                        colors.mist_100,
+                        colors.mist_500,
+                        colors.mist_200,
+                        colors.mist_200,
+                        colors.white,
+                        colors.white,
+                        colors.mist_100,
+                        colors.mist_900,
+                    ),
+                    "taupe" => (
+                        colors.taupe_50,
+                        colors.taupe_950,
+                        colors.taupe_100,
+                        colors.taupe_500,
+                        colors.taupe_200,
+                        colors.taupe_200,
+                        colors.white,
+                        colors.white,
+                        colors.taupe_100,
+                        colors.taupe_900,
+                    ),
+                    "zinc" => (
+                        colors.zinc_50,
+                        colors.zinc_950,
+                        colors.zinc_100,
+                        colors.zinc_500,
+                        colors.zinc_200,
+                        colors.zinc_200,
+                        colors.white,
+                        colors.white,
+                        colors.zinc_100,
+                        colors.zinc_900,
+                    ),
+                    "neutral" => (
+                        colors.neutral_50,
+                        colors.neutral_950,
+                        colors.neutral_100,
+                        colors.neutral_500,
+                        colors.neutral_200,
+                        colors.neutral_200,
+                        colors.white,
+                        colors.white,
+                        colors.neutral_100,
+                        colors.neutral_900,
+                    ),
+                    _ => panic!("Unknown base palette: {}", base),
+                }
+            };
+
+        // Default primary from the base palette.
+        let (primary, primary_fg) = if dark {
+            match base {
+                "slate" => (colors.slate_50, colors.slate_900),
+                "stone" => (colors.stone_50, colors.stone_900),
+                "mauve" => (colors.mauve_50, colors.mauve_900),
+                "olive" => (colors.olive_50, colors.olive_900),
+                "mist" => (colors.mist_50, colors.mist_900),
+                "taupe" => (colors.taupe_50, colors.taupe_900),
+                "zinc" => (colors.zinc_50, colors.zinc_900),
+                "neutral" => (colors.neutral_50, colors.neutral_900),
+                _ => panic!("Unknown base palette: {}", base),
+            }
+        } else {
+            match base {
+                "slate" => (colors.slate_900, colors.slate_50),
+                "stone" => (colors.stone_900, colors.stone_50),
+                "mauve" => (colors.mauve_900, colors.mauve_50),
+                "olive" => (colors.olive_900, colors.olive_50),
+                "mist" => (colors.mist_900, colors.mist_50),
+                "taupe" => (colors.taupe_900, colors.taupe_50),
+                "zinc" => (colors.zinc_900, colors.zinc_50),
+                "neutral" => (colors.neutral_900, colors.neutral_50),
+                _ => panic!("Unknown base palette: {}", base),
+            }
+        };
+
+        let accent = primary;
+        let accent_fg = primary_fg;
+        let ring = primary;
+
+        let destructive = if dark { colors.red_800 } else { colors.red_500 };
+        let destructive_fg = colors.white;
+
+        let chart_1 = colors.blue_500;
+        let chart_2 = colors.green_500;
+        let chart_3 = colors.yellow_500;
+        let chart_4 = colors.red_500;
+        let chart_5 = colors.violet_500;
 
         Self {
-            colors: colors.clone(),
-
-            background: colors.white,
-            foreground: colors.slate_950,
-
-            primary: colors.slate_900,
-            primary_foreground: colors.slate_50,
-
-            secondary: colors.slate_100,
-            secondary_foreground: colors.slate_900,
-
-            muted: colors.slate_100,
-            muted_foreground: colors.slate_500,
-
-            accent: colors.slate_100,
-            accent_foreground: colors.slate_900,
-
-            destructive: colors.red_500,
-            destructive_foreground: colors.slate_50,
-
-            card: colors.white,
-            card_foreground: colors.slate_950,
-
-            popover: colors.white,
-            popover_foreground: colors.slate_950,
-
-            border: colors.slate_200,
-            input: colors.slate_200,
-            ring: colors.slate_950,
-
-            chart_1: colors.blue_500,
-            chart_2: colors.green_500,
-            chart_3: colors.yellow_500,
-            chart_4: colors.red_500,
-            chart_5: colors.violet_500,
+            is_dark: dark,
+            colors,
+            background: bg,
+            foreground: fg,
+            primary,
+            primary_foreground: primary_fg,
+            secondary,
+            secondary_foreground: secondary_fg,
+            muted,
+            muted_foreground: muted_fg,
+            accent,
+            accent_foreground: accent_fg,
+            destructive,
+            destructive_foreground: destructive_fg,
+            card,
+            card_foreground: fg,
+            popover,
+            popover_foreground: fg,
+            border,
+            input,
+            ring,
+            chart_1,
+            chart_2,
+            chart_3,
+            chart_4,
+            chart_5,
         }
     }
 
-    /// shadcn-style dark theme.
-    pub fn dark() -> Self {
-        let colors = Colors::default();
+    /// Override the theme (accent) color using any palette from `Colors`.
+    /// The primary shade is chosen as:
+    /// - Light mode: 500
+    /// - Dark mode:  400
+    /// The foreground is automatically set to white or black based on the luminance of the primary color.
+    pub fn theme_color(self, theme: &str) -> Self {
+        let colors = self.colors;
+        let primary = if self.is_dark {
+            match theme {
+                "stone" => colors.stone_400,
+                "mauve" => colors.mauve_400,
+                "olive" => colors.olive_400,
+                "mist" => colors.mist_400,
+                "taupe" => colors.taupe_400,
+                "slate" => colors.slate_400,
+                "gray" => colors.gray_400,
+                "zinc" => colors.zinc_400,
+                "neutral" => colors.neutral_50,
+                "red" => colors.red_400,
+                "orange" => colors.orange_400,
+                "amber" => colors.amber_400,
+                "yellow" => colors.yellow_400,
+                "lime" => colors.lime_400,
+                "green" => colors.green_400,
+                "emerald" => colors.emerald_400,
+                "teal" => colors.teal_400,
+                "cyan" => colors.cyan_400,
+                "sky" => colors.sky_400,
+                "blue" => colors.blue_400,
+                "indigo" => colors.indigo_400,
+                "violet" => colors.violet_400,
+                "purple" => colors.purple_400,
+                "fuchsia" => colors.fuchsia_400,
+                "pink" => colors.pink_400,
+                "rose" => colors.rose_400,
+                _ => panic!("Unknown theme palette: {}", theme),
+            }
+        } else {
+            match theme {
+                "stone" => colors.stone_950,
+                "mauve" => colors.mauve_950,
+                "olive" => colors.olive_950,
+                "mist" => colors.mist_950,
+                "taupe" => colors.taupe_950,
+                "slate" => colors.slate_950,
+                "gray" => colors.gray_500,
+                "zinc" => colors.zinc_500,
+                "neutral" => colors.neutral_950,
+                "red" => colors.red_500,
+                "orange" => colors.orange_500,
+                "amber" => colors.amber_500,
+                "yellow" => colors.yellow_500,
+                "lime" => colors.lime_500,
+                "green" => colors.green_500,
+                "emerald" => colors.emerald_500,
+                "teal" => colors.teal_500,
+                "cyan" => colors.cyan_500,
+                "sky" => colors.sky_500,
+                "blue" => colors.blue_500,
+                "indigo" => colors.indigo_500,
+                "violet" => colors.violet_500,
+                "purple" => colors.purple_500,
+                "fuchsia" => colors.fuchsia_500,
+                "pink" => colors.pink_500,
+                "rose" => colors.rose_500,
+                _ => panic!("Unknown theme palette: {}", theme),
+            }
+        };
+
+        let primary_fg = if Self::luminance(primary) < 0.5 {
+            colors.white
+        } else {
+            colors.black
+        };
+
+        let accent = primary;
+        let accent_fg = primary_fg;
+        let ring = primary;
 
         Self {
-            colors: colors.clone(),
-
-            background: colors.black,
-            foreground: colors.slate_50,
-
-            primary: colors.slate_50,
-            primary_foreground: colors.slate_900,
-
-            secondary: colors.slate_800,
-            secondary_foreground: colors.slate_50,
-
-            muted: colors.slate_800,
-            muted_foreground: colors.slate_400,
-
-            accent: colors.slate_800,
-            accent_foreground: colors.slate_50,
-
-            destructive: colors.red_900,
-            destructive_foreground: colors.slate_50,
-
-            card: colors.slate_950,
-            card_foreground: colors.slate_50,
-
-            popover: colors.slate_950,
-            popover_foreground: colors.slate_50,
-
-            border: colors.slate_800,
-            input: colors.slate_800,
-            ring: colors.slate_300,
-
-            chart_1: colors.blue_500,
-            chart_2: colors.green_500,
-            chart_3: colors.yellow_500,
-            chart_4: colors.red_500,
-            chart_5: colors.violet_500,
+            primary,
+            primary_foreground: primary_fg,
+            accent,
+            accent_foreground: accent_fg,
+            ring,
+            ..self
         }
+    }
+
+    // ------------------------------------------------------------------------
+    // Convenience constructors for each base palette, accepting a theme.
+    // ------------------------------------------------------------------------
+
+    pub fn stone(dark: bool, theme: &str) -> Self {
+        Self::base_color("stone", dark).theme_color(theme)
+    }
+    pub fn mauve(dark: bool, theme: &str) -> Self {
+        Self::base_color("mauve", dark).theme_color(theme)
+    }
+    pub fn olive(dark: bool, theme: &str) -> Self {
+        Self::base_color("olive", dark).theme_color(theme)
+    }
+    pub fn mist(dark: bool, theme: &str) -> Self {
+        Self::base_color("mist", dark).theme_color(theme)
+    }
+    pub fn taupe(dark: bool, theme: &str) -> Self {
+        Self::base_color("taupe", dark).theme_color(theme)
+    }
+    pub fn zinc(dark: bool, theme: &str) -> Self {
+        Self::base_color("zinc", dark).theme_color(theme)
+    }
+    pub fn neutral(dark: bool, theme: &str) -> Self {
+        Self::base_color("neutral", dark).theme_color(theme)
     }
 }
-
-// todo create use_theme hook
-// todo add methods like set_primary("neutral"), set_accent, etc which will set methods like primary_50, primary_100, etc

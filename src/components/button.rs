@@ -1,6 +1,5 @@
 use crate::core::CNExt;
 use crate::core::theme::Theme as CNTheme;
-
 use freya::prelude::{Button as ButtonPrimitive, *};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -25,7 +24,7 @@ pub enum ButtonSize {
     IconLg,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub struct CNButton {
     variant: ButtonVariant,
     size: ButtonSize,
@@ -71,9 +70,7 @@ impl CNButton {
         Self {
             variant: ButtonVariant::Default,
             size: ButtonSize::Default,
-
-            corner_radius: 10.0,
-
+            corner_radius: 10.0, // default radius
             label: None,
             elements: Vec::new(),
 
@@ -91,7 +88,6 @@ impl CNButton {
 
             background: None,
         }
-        .rounded_lg()
     }
 
     // ------------------------------------------------------------
@@ -222,6 +218,7 @@ impl CNButton {
         self
     }
 
+    /// Set an icon for the button. The icon can be any Element, typically a FreyaCN `Icon` component.
     pub fn icon(mut self, icon: impl Into<Element>) -> Self {
         self.icon = Some(icon.into());
         self
@@ -239,14 +236,10 @@ impl CornerRadiusExt for CNButton {
 }
 
 // ------------------------------------------------------------
-// FreyaCN extension trait
+// FreyaCN extension trait (without theme() – it's not usable)
 // ------------------------------------------------------------
 
 impl CNExt for CNButton {
-    fn theme(&self) -> &CNTheme {
-        use_consume()
-    }
-
     fn background(mut self, color: Color) -> Self {
         self.background = Some(color);
         self
@@ -262,6 +255,46 @@ impl Component for CNButton {
         // Global FreyaCN theme.
         let theme: CNTheme = use_consume();
 
+        // Compute colors based on variant.
+        let (bg, hover_bg, border_color, text_color) = match self.variant {
+            ButtonVariant::Default => (
+                theme.primary,
+                theme.primary,
+                theme.primary,
+                theme.primary_foreground,
+            ),
+            ButtonVariant::Destructive => (
+                theme.destructive,
+                theme.destructive,
+                theme.destructive,
+                theme.destructive_foreground,
+            ),
+            ButtonVariant::Outline => (
+                theme.background,
+                theme.accent,
+                theme.border,
+                theme.foreground,
+            ),
+            ButtonVariant::Secondary => (
+                theme.secondary,
+                theme.secondary,
+                theme.secondary,
+                theme.secondary_foreground,
+            ),
+            ButtonVariant::Ghost => (
+                theme.background,
+                theme.accent,
+                theme.background,
+                theme.foreground,
+            ),
+            ButtonVariant::Link => (
+                theme.background,
+                theme.background,
+                theme.background,
+                theme.primary,
+            ),
+        };
+
         let mut button = ButtonPrimitive::new();
 
         let mut rectangle = rect()
@@ -271,164 +304,122 @@ impl Component for CNButton {
             .width(Size::auto())
             .height(Size::auto());
 
-        // --------------------------------------------------------
-        // Base properties
-        // --------------------------------------------------------
-
+        // Base properties.
         button = button
             .corner_radius(self.corner_radius)
             .enabled(self.enabled)
             .focusable(self.focusable)
             .cursor_icon(self.cursor_icon);
 
-        // --------------------------------------------------------
-        // Events
-        // --------------------------------------------------------
-
+        // Events.
         if let Some(on_press) = self.on_press.clone() {
             button = button.on_press(on_press);
         }
-
         if let Some(on_secondary_down) = self.on_secondary_down.clone() {
             button = button.on_secondary_down(on_secondary_down);
         }
-
         if let Some(on_pointer_down) = self.on_pointer_down.clone() {
             button = button.on_pointer_down(on_pointer_down);
         }
 
-        // --------------------------------------------------------
-        // Explicit background override
-        // --------------------------------------------------------
+        // Apply variant colors.
+        button = button
+            .background(bg)
+            .hover_background(hover_bg)
+            .border_fill(border_color)
+            .color(text_color);
 
+        // Override background if explicitly set.
         if let Some(background) = self.background {
             button = button.background(background);
         }
 
-        // --------------------------------------------------------
-        // Variant
-        // --------------------------------------------------------
+        // For Link variant, remove borders and underline? The primitive might not support underline,
+        // but we can set a transparent border and maybe add underline via a separate label style.
+        if self.variant == ButtonVariant::Link {
+            button = button.border_fill(theme.background).outline();
+        }
 
-        button = match self.variant {
-            ButtonVariant::Default => button
-                .background(theme.primary)
-                .hover_background(theme.primary)
-                .border_fill(theme.primary)
-                .color(theme.primary_foreground),
-
-            ButtonVariant::Destructive => button
-                .background(theme.destructive)
-                .hover_background(theme.destructive)
-                .border_fill(theme.destructive)
-                .color(theme.destructive_foreground),
-
-            ButtonVariant::Outline => button
-                .background(theme.background)
-                .hover_background(theme.accent)
-                .border_fill(theme.border)
-                .color(theme.foreground),
-
-            ButtonVariant::Secondary => button
-                .background(theme.secondary)
-                .hover_background(theme.secondary)
-                .border_fill(theme.secondary)
-                .color(theme.secondary_foreground),
-
-            ButtonVariant::Ghost => button
-                .background(theme.background)
-                .hover_background(theme.accent)
-                .border_fill(theme.background)
-                .color(theme.foreground),
-
-            ButtonVariant::Link => button
-                .background(theme.background)
-                .hover_background(theme.background)
-                .color(theme.primary)
-                .outline(),
-        };
-
-        // --------------------------------------------------------
-        // Size
-        // --------------------------------------------------------
-
+        // Size and padding.
         button = match self.size {
             ButtonSize::Default => button
                 .padding(Gaps::new(8., 10., 8., 10.))
-                .width(Size::auto()),
+                .width(Size::auto())
+                .corner_radius(self.corner_radius),
 
             ButtonSize::Xs => button
                 .padding(Gaps::new(6., 8., 6., 8.))
-                .width(Size::auto()),
+                .width(Size::auto())
+                .corner_radius(self.corner_radius),
 
             ButtonSize::Sm => button
                 .padding(Gaps::new(8., 10., 8., 10.))
-                .width(Size::auto()),
+                .width(Size::auto())
+                .corner_radius(self.corner_radius),
 
             ButtonSize::Lg => button
                 .padding(Gaps::new(8., 12., 8., 12.))
-                .width(Size::auto()),
+                .width(Size::auto())
+                .corner_radius(self.corner_radius),
 
             ButtonSize::Icon => button
-                .width(Size::flex(1.))
+                .width(Size::px(36.))
                 .height(Size::px(36.))
-                .padding(Gaps::new_all(0.)),
+                .padding(Gaps::new_all(0.))
+                .corner_radius(self.corner_radius),
 
             ButtonSize::IconXs => button
-                .width(Size::auto())
+                .width(Size::px(24.))
                 .height(Size::px(24.))
-                .padding(Gaps::new_all(0.)),
+                .padding(Gaps::new_all(0.))
+                .corner_radius(self.corner_radius),
 
             ButtonSize::IconSm => button
                 .width(Size::px(32.))
                 .height(Size::px(32.))
-                .padding(Gaps::new_all(0.)),
+                .padding(Gaps::new_all(0.))
+                .corner_radius(self.corner_radius),
 
             ButtonSize::IconLg => button
                 .width(Size::px(40.))
                 .height(Size::px(40.))
-                .padding(Gaps::new_all(0.)),
+                .padding(Gaps::new_all(0.))
+                .corner_radius(self.corner_radius),
         };
 
-        // --------------------------------------------------------
-        // Label
-        // --------------------------------------------------------
+        // Determine font and icon sizes based on button size.
+        let (font_size, icon_size) = match self.size {
+            ButtonSize::Default => (14., 20.),
+            ButtonSize::Xs => (12., 14.),
+            ButtonSize::Sm => (12., 16.),
+            ButtonSize::Lg => (16., 24.),
+            ButtonSize::Icon => (14., 20.),
+            ButtonSize::IconXs => (12., 14.),
+            ButtonSize::IconSm => (12., 16.),
+            ButtonSize::IconLg => (16., 24.),
+        };
 
+        // Render label if present.
         if let Some(label_text) = &self.label {
-            let font_size = match self.size {
-                ButtonSize::Default => 14.,
-                ButtonSize::Xs => 12.,
-                ButtonSize::Sm => 12.,
-                ButtonSize::Lg => 14.,
-                ButtonSize::Icon => 14.,
-                ButtonSize::IconXs => 12.,
-                ButtonSize::IconSm => 12.,
-                ButtonSize::IconLg => 14.,
+            let label = label()
+                .text(label_text.clone())
+                .color(text_color) // use the variant's text color
+                .font_size(font_size)
+                .font_weight(FontWeight::MEDIUM);
+
+            // Add underline for Link variant.
+            let label = if self.variant == ButtonVariant::Link {
+                label.text_decoration(TextDecoration::Underline)
+            } else {
+                label
             };
 
-            rectangle = rectangle.child(
-                label()
-                    .text(label_text.clone())
-                    .font_size(font_size)
-                    .font_weight(FontWeight::MEDIUM),
-            );
+            rectangle = rectangle.child(label);
         }
 
-        // --------------------------------------------------------
-        // Icon
-        // --------------------------------------------------------
-
+        // Render icon if present.
         if let Some(icon) = &self.icon {
-            let icon_size = match self.size {
-                ButtonSize::Default => 24.,
-                ButtonSize::Xs => 12.,
-                ButtonSize::Sm => 12.,
-                ButtonSize::Lg => 14.,
-                ButtonSize::Icon => 14.,
-                ButtonSize::IconXs => 12.,
-                ButtonSize::IconSm => 12.,
-                ButtonSize::IconLg => 14.,
-            };
-
+            // Wrap icon in a container with the desired size.
             rectangle = rectangle.child(
                 rect()
                     .height(Size::px(icon_size))
@@ -437,10 +428,7 @@ impl Component for CNButton {
             );
         }
 
-        // --------------------------------------------------------
-        // User children
-        // --------------------------------------------------------
-
+        // User children.
         for element in &self.elements {
             rectangle = rectangle.child(element.clone());
         }
@@ -457,5 +445,3 @@ impl Component for CNButton {
 pub fn Button() -> CNButton {
     CNButton::new()
 }
-
-//todo add .icon() method that accepts freyacn Icon component
