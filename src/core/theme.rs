@@ -1,14 +1,110 @@
+//! # FreyaCN Theme System
+//!
+//! This module provides a complete theming system inspired by shadcn/ui and built for Freya.
+//! It includes a full Tailwind‑style color palette, semantic theme fields, and hooks to
+//! consume and provide the theme in your components.
+//!
+//! ## Overview
+//!
+//! The theme is composed of two main parts:
+//! - **`Colors`**: a palette of 10 shades (50–950) for each of the common Tailwind color families
+//!   (slate, gray, zinc, neutral, red, orange, amber, yellow, lime, green, emerald, teal, cyan,
+//!   sky, blue, indigo, violet, purple, fuchsia, pink, rose, plus stone, mauve, olive, mist, taupe).
+//! - **`Theme`**: a semantic collection of colors used by your UI components (background, foreground,
+//!   primary, secondary, accent, destructive, border, etc.). It also stores the full `Colors` palette
+//!   and a `is_dark` flag.
+//!
+//! You can build a theme by choosing a **base palette** (the neutral shades used for backgrounds,
+//! borders, and other structural elements) and a **theme palette** (the accent colour used for
+//! primary actions, links, and interactive elements).
+//!
+//! ## Usage
+//!
+//! ### Setting the root theme
+//! In your application’s root component, call `use_init_cn_theme` with the theme you want.
+//!
+//! ```no_run
+//! # use freyacn::theme::*;
+//! # use freya::prelude::*;
+//! fn App() -> impl IntoElement {
+//!     // Create a light theme with a slate base and blue accent.
+//!     let theme = Theme::base_color("slate", false).theme_color("blue");
+//!     use_init_cn_theme(theme);
+//!
+//!     // Your UI…
+//!     rect()
+//!         .expanded()
+//!         .background(theme.background)   // use the theme directly
+//!         .child("Hello, world!")
+//! }
+//! ```
+//!
+//! ### Using the theme in a component
+//! Inside any component, call `use_cn_theme()` to retrieve the current theme.
+//!
+//! ```no_run
+//! # use freyacn::theme::*;
+//! # use freya::prelude::*;
+//! fn MyButton() -> impl IntoElement {
+//!     let theme = use_cn_theme();
+//!     Button::new()
+//!         .background(theme.primary)
+//!         .color(theme.primary_foreground)
+//!         .child("Click me")
+//! }
+//! ```
+//!
+//! ### Overriding the theme for a subtree
+//! Use `use_provide_cn_theme` to supply a different theme to a specific branch of your UI.
+//!
+//! ```no_run
+//! # use freyacn::theme::*;
+//! # use freya::prelude::*;
+//! fn DarkPanel() -> impl IntoElement {
+//!     let dark_theme = Theme::base_color("zinc", true).theme_color("rose");
+//!     use_provide_cn_theme(dark_theme);
+//!     // All children here will see the dark theme.
+//!     rect()
+//!         .expanded()
+//!         .background(dark_theme.background)
+//! }
+//! ```
+
 use freya::prelude::*;
+use freya::prelude::{
+    Readable, State, provide_context, try_consume_context, use_consume, use_hook,
+};
 
 /// Convert an RGB tuple into a Freya Color.
 const fn rgb(r: u8, g: u8, b: u8) -> Color {
     Color::from_rgb(r, g, b)
 }
 
+// ------------------------------------------------------------------------
+// Color palette
+// ------------------------------------------------------------------------
+
 /// Complete FreyaCN color palette (Tailwind/shadcn style).
+///
+/// This struct contains all the colours from the Tailwind‑style palettes used by shadcn/ui.
+/// It includes 10 shades (50, 100, 200, …, 900, 950) for each of the following families:
+///
+/// - **Neutrals**: `slate`, `gray`, `zinc`, `neutral`, `stone`, `mauve`, `olive`, `mist`, `taupe`
+/// - **Accents**: `red`, `orange`, `amber`, `yellow`, `lime`, `green`, `emerald`, `teal`, `cyan`,
+///   `sky`, `blue`, `indigo`, `violet`, `purple`, `fuchsia`, `pink`, `rose`
+///
+/// Plus the basic `white` and `black`.
+///
+/// # Example
+/// ```
+/// use freyacn::theme::Colors;
+/// let colors = Colors::new();
+/// let slate_500 = colors.slate_500;   // tailwind slate-500
+/// let blue_400 = colors.blue_400;     // tailwind blue-400
+/// ```
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Colors {
-    // basic colors
+    // basic
     pub white: Color,
     pub black: Color,
 
@@ -352,6 +448,7 @@ pub struct Colors {
 }
 
 impl Colors {
+    /// Creates a new colour palette with all the default Tailwind‑style colours.
     pub fn new() -> Self {
         Self {
             // basic
@@ -704,44 +801,100 @@ impl Default for Colors {
         Self::new()
     }
 }
+
+// ------------------------------------------------------------------------
+// Semantic theme
+// ------------------------------------------------------------------------
+
 /// Semantic FreyaCN theme.
+///
+/// This is the central theme object used by your UI components. It is built from a
+/// `Colors` palette and defines the semantic colours for backgrounds, text, borders,
+/// interactive elements, and more.
+///
+/// All colour fields are public and intended to be read directly. The theme also carries
+/// a `is_dark` flag and the full palette (`colors`) for when you need to access specific
+/// shade values.
+///
+/// # Example
+/// ```
+/// # use freyacn::theme::Theme;
+/// let theme = Theme::base_color("slate", false).theme_color("blue");
+/// let background = theme.background;
+/// let primary = theme.primary;
+/// ```
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Theme {
+    /// Whether the theme is in dark mode.
     pub is_dark: bool,
+    /// The full colour palette.
     pub colors: Colors,
 
+    // ----- Core -----
+    /// Main background colour.
     pub background: Color,
+    /// Main foreground (text) colour.
     pub foreground: Color,
 
+    // ----- Primary -----
+    /// Primary accent colour (e.g., main call‑to‑action).
     pub primary: Color,
+    /// Foreground colour that contrasts with `primary`.
     pub primary_foreground: Color,
 
+    // ----- Secondary -----
+    /// Secondary background colour (less prominent than `primary`).
     pub secondary: Color,
+    /// Foreground colour that contrasts with `secondary`.
     pub secondary_foreground: Color,
 
+    // ----- Muted -----
+    /// Muted background (often used for subtle backgrounds or disabled states).
     pub muted: Color,
+    /// Foreground colour that contrasts with `muted`.
     pub muted_foreground: Color,
 
+    // ----- Accent -----
+    /// Accent colour (similar to `primary` but may be used for less prominent actions).
     pub accent: Color,
+    /// Foreground colour that contrasts with `accent`.
     pub accent_foreground: Color,
 
+    // ----- Destructive -----
+    /// Destructive colour (e.g., for delete or warning actions).
     pub destructive: Color,
+    /// Foreground colour that contrasts with `destructive`.
     pub destructive_foreground: Color,
 
+    // ----- Card / Popover -----
+    /// Background for card‑like surfaces.
     pub card: Color,
+    /// Foreground colour that contrasts with `card`.
     pub card_foreground: Color,
 
+    /// Background for popover surfaces.
     pub popover: Color,
+    /// Foreground colour that contrasts with `popover`.
     pub popover_foreground: Color,
 
+    // ----- Borders & Inputs -----
+    /// Border colour for general use.
     pub border: Color,
+    /// Border colour for input fields.
     pub input: Color,
+    /// Focus ring colour.
     pub ring: Color,
 
+    // ----- Charts -----
+    /// Primary chart colour.
     pub chart_1: Color,
+    /// Secondary chart colour.
     pub chart_2: Color,
+    /// Tertiary chart colour.
     pub chart_3: Color,
+    /// Quaternary chart colour.
     pub chart_4: Color,
+    /// Quinary chart colour.
     pub chart_5: Color,
 }
 
@@ -754,7 +907,22 @@ impl Theme {
         0.299 * r + 0.587 * g + 0.114 * b
     }
 
-    /// Build a theme from a base (neutral) palette.
+    /// Build a theme from a **base palette** (neutral colours) and a dark/light mode.
+    ///
+    /// This sets the `background`, `foreground`, `muted`, `muted_foreground`, `border`,
+    /// `input`, `card`, `popover`, `secondary`, `secondary_foreground` to the appropriate
+    /// shades of the chosen base palette.
+    ///
+    /// The `primary`, `primary_foreground`, `accent`, `accent_foreground`, and `ring`
+    /// are initially set to the base palette's primary shades (900/50 for light,
+    /// 50/900 for dark). You can override them later with `.theme_color()`.
+    ///
+    /// # Arguments
+    /// - `base`: the name of the base palette (e.g., `"slate"`, `"stone"`, `"neutral"`).
+    /// - `dark`: whether the theme should be dark (`true`) or light (`false`).
+    ///
+    /// # Panics
+    /// Panics if the `base` palette name is unknown.
     pub fn base_color(base: &str, dark: bool) -> Self {
         let colors = Colors::default();
         let (bg, fg, muted, muted_fg, border, input, card, popover, secondary, secondary_fg) =
@@ -1030,11 +1198,23 @@ impl Theme {
         }
     }
 
-    /// Override the theme (accent) color using any palette from `Colors`.
-    /// The primary shade is chosen as:
-    /// - Light mode: 500
-    /// - Dark mode:  400
-    /// The foreground is automatically set to white or black based on the luminance of the primary color.
+    /// Override the **accent (theme) colour** using any palette from `Colors`.
+    ///
+    /// This sets the `primary`, `primary_foreground`, `accent`, `accent_foreground`,
+    /// and `ring` fields to the appropriate shades of the chosen theme palette.
+    ///
+    /// The shade used depends on the theme’s `is_dark` flag:
+    /// - **Light mode**: uses the 500 shade of the palette (e.g., `blue_500`).
+    /// - **Dark mode**: uses the 400 shade of the palette (e.g., `blue_400`).
+    ///
+    /// The `primary_foreground` is automatically set to either `white` or `black`
+    /// based on the luminance of the chosen primary colour to ensure sufficient contrast.
+    ///
+    /// # Arguments
+    /// - `theme`: the name of the accent palette (e.g., `"blue"`, `"red"`, `"violet"`).
+    ///
+    /// # Panics
+    /// Panics if the `theme` name is unknown.
     pub fn theme_color(self, theme: &str) -> Self {
         let colors = self.colors;
         let primary = if self.is_dark {
@@ -1123,25 +1303,135 @@ impl Theme {
     // Convenience constructors for each base palette, accepting a theme.
     // ------------------------------------------------------------------------
 
+    /// Creates a theme with the `stone` base and the given accent theme.
     pub fn stone(dark: bool, theme: &str) -> Self {
         Self::base_color("stone", dark).theme_color(theme)
     }
+    /// Creates a theme with the `mauve` base and the given accent theme.
     pub fn mauve(dark: bool, theme: &str) -> Self {
         Self::base_color("mauve", dark).theme_color(theme)
     }
+    /// Creates a theme with the `olive` base and the given accent theme.
     pub fn olive(dark: bool, theme: &str) -> Self {
         Self::base_color("olive", dark).theme_color(theme)
     }
+    /// Creates a theme with the `mist` base and the given accent theme.
     pub fn mist(dark: bool, theme: &str) -> Self {
         Self::base_color("mist", dark).theme_color(theme)
     }
+    /// Creates a theme with the `taupe` base and the given accent theme.
     pub fn taupe(dark: bool, theme: &str) -> Self {
         Self::base_color("taupe", dark).theme_color(theme)
     }
+    /// Creates a theme with the `zinc` base and the given accent theme.
     pub fn zinc(dark: bool, theme: &str) -> Self {
         Self::base_color("zinc", dark).theme_color(theme)
     }
+    /// Creates a theme with the `neutral` base and the given accent theme.
     pub fn neutral(dark: bool, theme: &str) -> Self {
         Self::base_color("neutral", dark).theme_color(theme)
     }
+}
+
+// ================================================================
+// Hooks – Theme access and initialization
+// ================================================================
+
+/// Provides a custom FreyaCN theme, reusing an existing context if one already exists.
+///
+/// If a theme context is already present in the current scope, this will update it
+/// with the new theme value; otherwise, it creates a new context.
+///
+/// This is the recommended way to set the root theme for your application.
+///
+/// # Example
+/// ```
+/// # use freyacn::theme::{use_init_cn_theme, Theme};
+/// # use freya::prelude::*;
+/// fn App() -> impl IntoElement {
+///     let theme = Theme::base_color("slate", false).theme_color("blue");
+///     use_init_cn_theme(theme);
+///
+///     // Your app components...
+///     rect().expanded().child(MyComponent())
+/// }
+/// ```
+pub fn use_init_cn_theme(theme: Theme) -> State<Theme> {
+    use_hook(|| {
+        if let Some(mut existing) = try_consume_context::<State<Theme>>() {
+            existing.set(theme);
+            existing
+        } else {
+            let state = State::create(theme);
+            provide_context(state);
+            state
+        }
+    })
+}
+
+/// Provides a custom FreyaCN theme, always creating a new context.
+///
+/// Unlike `use_init_cn_theme`, this will never reuse an existing context.
+/// Use this when you need to override the theme for a subtree, regardless
+/// of any parent theme.
+///
+/// # Example
+/// ```
+/// # use freyacn::theme::{use_provide_cn_theme, Theme};
+/// # use freya::prelude::*;
+/// fn DarkSubtree() -> impl IntoElement {
+///     let dark_theme = Theme::base_color("zinc", true).theme_color("rose");
+///     use_provide_cn_theme(dark_theme);
+///     // Children here will see the dark theme.
+/// }
+/// ```
+pub fn use_provide_cn_theme(theme: Theme) -> State<Theme> {
+    use_hook(|| {
+        let state = State::create(theme);
+        provide_context(state);
+        state
+    })
+}
+
+/// Subscribes to the current FreyaCN theme.
+///
+/// This hook will panic if no theme has been provided in the context.
+/// For a fallback that doesn't panic, use `get_cn_theme_or_default()` instead.
+///
+/// # Example
+/// ```
+/// # use freyacn::theme::use_cn_theme;
+/// # use freya::prelude::*;
+/// fn MyButton() -> impl IntoElement {
+///     let theme = use_cn_theme();
+///     let background = theme.background;
+///     // ...
+/// }
+/// ```
+pub fn use_cn_theme() -> State<Theme> {
+    use_consume::<State<Theme>>()
+}
+
+/// Subscribes to the current FreyaCN theme, falling back to a default theme if none is provided.
+///
+/// The default theme is a light slate theme with slate accent.
+/// This is useful for built‑in components that should work even without an explicit theme provider.
+///
+/// # Example
+/// ```
+/// # use freyacn::theme::get_cn_theme_or_default;
+/// # use freya::prelude::*;
+/// fn MyComponent() -> impl IntoElement {
+///     let theme = get_cn_theme_or_default();
+///     // theme will always be valid
+/// }
+/// ```
+pub fn get_cn_theme_or_default() -> Readable<Theme> {
+    try_consume_context::<State<Theme>>()
+        .map(|v| v.into())
+        .unwrap_or_else(|| {
+            Theme::base_color("slate", false)
+                .theme_color("slate")
+                .into()
+        })
 }

@@ -1,40 +1,101 @@
-use crate::core::theme::Theme;
+//! # FreyaCN Extension Trait
+//!
+//! This module provides the `CNExt` trait, which extends any type (typically a UI component)
+//! with convenient methods for setting background and foreground colours using the
+//! FreyaCN theme palette.
+//!
+//! ## Overview
+//!
+//! The trait offers two main categories of helpers:
+//!
+//! - **Background helpers**: `bg_slate_50()`, `bg_red_500()`, `bg_primary()`, etc.
+//! - **Foreground helpers**: `fg_slate_50()`, `fg_red_500()`, `fg_primary()`, etc.
+//!
+//! All methods automatically use the current theme from the context, so you don't have
+//! to pass a theme reference manually. This makes it easy to theme your components
+//! while keeping the code clean and readable.
+//!
+//! ## Examples
+//!
+//! ```no_run
+//! use freyacn::core::CNExt;
+//! # use freyacn::button::Button;
+//!
+//! let button = Button::new()
+//!     .bg_primary()          // sets background to theme.primary
+//!     .fg_primary_foreground(); // sets text colour to theme.primary_foreground
+//! ```
+//!
+//! ```no_run
+//! use freyacn::core::CNExt;
+//! # use freyacn::icon::Icon;
+//! # use freya::icons;
+//! let icon = Icon(icons::lucide::heart())
+//!     .bg_red_500()        // sets background to red-500 (if the component supports it)
+//!     .fg_white();          // sets the icon colour to white
+//! ```
+//!
+//! ## Implementing `CNExt` for your own components
+//!
+//! To use these helpers on your own component type, simply implement the two core methods:
+//!
+//! - `background(self, color: Color) -> Self`
+//! - `color(self, color: Color) -> Self`
+//!
+//! The macro‑generated helpers will then work automatically.
+
 use freya::prelude::Color;
 
-/// Macro to generate background color methods.
+use crate::core::theme::use_cn_theme;
+
+/// Macro to generate background colour helpers for every palette colour.
+///
+/// Each generated method takes `self` and no other parameters; it automatically
+/// fetches the theme via `use_cn_theme()` and calls `self.background(theme.colors.$field)`.
 macro_rules! bg_color {
     ($($method:ident => $field:ident),* $(,)?) => {
         $(
-            fn $method(self, theme: &Theme) -> Self {
+            fn $method(self) -> Self {
+                let theme = use_cn_theme().read();
                 self.background(theme.colors.$field)
             }
         )*
     };
 }
 
-/// Macro to generate foreground (text) color methods.
+/// Macro to generate foreground (text) colour helpers for every palette colour.
+///
+/// Each generated method works like `bg_color!` but uses `self.color()` instead.
 macro_rules! fg_color {
     ($($method:ident => $field:ident),* $(,)?) => {
         $(
-            fn $method(self, theme: &Theme) -> Self {
+            fn $method(self) -> Self {
+                let theme = use_cn_theme().read();
                 self.color(theme.colors.$field)
             }
         )*
     };
 }
 
+/// An extension trait that adds theme‑aware colour helpers to any type.
+///
+/// Implement this trait for your own components to give them convenient
+/// background and foreground colour setters that automatically use the
+/// current theme.
 pub trait CNExt: Sized {
-    /// Set the background color explicitly.
+    /// Set the background colour explicitly.
     fn background(self, color: Color) -> Self;
-    /// Set the foreground (text) color explicitly.
+
+    /// Set the foreground (text) colour explicitly.
     fn color(self, color: Color) -> Self;
+
     /// Alias for `color`.
     fn foreground(self, color: Color) -> Self {
         self.color(color)
     }
 
     // --------------------------------------------------------------
-    // Background palette helpers – covers ALL colors in `Colors`.
+    // Background palette helpers – all colours from `Colors`.
     // --------------------------------------------------------------
     bg_color! {
         // Neutrals
@@ -354,7 +415,7 @@ pub trait CNExt: Sized {
     }
 
     // --------------------------------------------------------------
-    // Foreground (text) palette helpers – covers ALL colors in `Colors`.
+    // Foreground (text) palette helpers – all colours from `Colors`.
     // --------------------------------------------------------------
     fg_color! {
         // Neutrals
@@ -674,99 +735,166 @@ pub trait CNExt: Sized {
     }
 
     // --------------------------------------------------------------
-    // Semantic foreground (text) colors – map directly to Theme fields.
+    // Semantic foreground (text) helpers
     // --------------------------------------------------------------
 
-    fn fg_background(self, theme: &Theme) -> Self {
+    /// Sets the foreground colour to the theme's `background` colour.
+    fn fg_background(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.background)
     }
-    fn fg_foreground(self, theme: &Theme) -> Self {
+
+    /// Sets the foreground colour to the theme's `foreground` colour.
+    fn fg_foreground(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.foreground)
     }
 
-    fn fg_primary(self, theme: &Theme) -> Self {
+    /// Sets the foreground colour to the theme's `primary` colour.
+    fn fg_primary(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.primary)
     }
-    fn fg_primary_foreground(self, theme: &Theme) -> Self {
+
+    /// Sets the foreground colour to the theme's `primary_foreground` colour.
+    fn fg_primary_foreground(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.primary_foreground)
     }
 
-    fn fg_secondary(self, theme: &Theme) -> Self {
+    /// Sets the foreground colour to the theme's `secondary` colour.
+    fn fg_secondary(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.secondary)
     }
-    fn fg_secondary_foreground(self, theme: &Theme) -> Self {
+
+    /// Sets the foreground colour to the theme's `secondary_foreground` colour.
+    fn fg_secondary_foreground(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.secondary_foreground)
     }
 
-    fn fg_muted(self, theme: &Theme) -> Self {
+    /// Sets the foreground colour to the theme's `muted` colour.
+    fn fg_muted(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.muted)
     }
-    fn fg_muted_foreground(self, theme: &Theme) -> Self {
+
+    /// Sets the foreground colour to the theme's `muted_foreground` colour.
+    fn fg_muted_foreground(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.muted_foreground)
     }
 
-    fn fg_accent(self, theme: &Theme) -> Self {
+    /// Sets the foreground colour to the theme's `accent` colour.
+    fn fg_accent(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.accent)
     }
-    fn fg_accent_foreground(self, theme: &Theme) -> Self {
+
+    /// Sets the foreground colour to the theme's `accent_foreground` colour.
+    fn fg_accent_foreground(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.accent_foreground)
     }
 
-    fn fg_destructive(self, theme: &Theme) -> Self {
+    /// Sets the foreground colour to the theme's `destructive` colour.
+    fn fg_destructive(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.destructive)
     }
-    fn fg_destructive_foreground(self, theme: &Theme) -> Self {
+
+    /// Sets the foreground colour to the theme's `destructive_foreground` colour.
+    fn fg_destructive_foreground(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.destructive_foreground)
     }
 
-    fn fg_card(self, theme: &Theme) -> Self {
+    /// Sets the foreground colour to the theme's `card` colour.
+    fn fg_card(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.card)
     }
-    fn fg_card_foreground(self, theme: &Theme) -> Self {
+
+    /// Sets the foreground colour to the theme's `card_foreground` colour.
+    fn fg_card_foreground(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.card_foreground)
     }
 
-    fn fg_popover(self, theme: &Theme) -> Self {
+    /// Sets the foreground colour to the theme's `popover` colour.
+    fn fg_popover(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.popover)
     }
-    fn fg_popover_foreground(self, theme: &Theme) -> Self {
+
+    /// Sets the foreground colour to the theme's `popover_foreground` colour.
+    fn fg_popover_foreground(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.popover_foreground)
     }
 
-    fn fg_border(self, theme: &Theme) -> Self {
+    /// Sets the foreground colour to the theme's `border` colour.
+    fn fg_border(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.border)
     }
-    fn fg_input(self, theme: &Theme) -> Self {
+
+    /// Sets the foreground colour to the theme's `input` colour.
+    fn fg_input(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.input)
     }
-    fn fg_ring(self, theme: &Theme) -> Self {
+
+    /// Sets the foreground colour to the theme's `ring` colour.
+    fn fg_ring(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.ring)
     }
 
-    fn fg_chart_1(self, theme: &Theme) -> Self {
+    /// Sets the foreground colour to the theme's `chart_1` colour.
+    fn fg_chart_1(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.chart_1)
     }
-    fn fg_chart_2(self, theme: &Theme) -> Self {
+
+    /// Sets the foreground colour to the theme's `chart_2` colour.
+    fn fg_chart_2(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.chart_2)
     }
-    fn fg_chart_3(self, theme: &Theme) -> Self {
+
+    /// Sets the foreground colour to the theme's `chart_3` colour.
+    fn fg_chart_3(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.chart_3)
     }
-    fn fg_chart_4(self, theme: &Theme) -> Self {
+
+    /// Sets the foreground colour to the theme's `chart_4` colour.
+    fn fg_chart_4(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.chart_4)
     }
-    fn fg_chart_5(self, theme: &Theme) -> Self {
+
+    /// Sets the foreground colour to the theme's `chart_5` colour.
+    fn fg_chart_5(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.chart_5)
     }
 
     // --------------------------------------------------------------
-    // Literal colors
+    // Literal colour helpers
     // --------------------------------------------------------------
 
-    fn fg_white(self, theme: &Theme) -> Self {
+    /// Sets the foreground colour to `white`.
+    fn fg_white(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.colors.white)
     }
-    fn fg_black(self, theme: &Theme) -> Self {
+
+    /// Sets the foreground colour to `black`.
+    fn fg_black(self) -> Self {
+        let theme = use_cn_theme().read();
         self.color(theme.colors.black)
     }
 }
