@@ -1,4 +1,5 @@
 pub mod ext;
+pub mod icon_context;
 pub mod theme;
 
 pub use ext::CNExt;

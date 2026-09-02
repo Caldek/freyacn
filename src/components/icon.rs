@@ -63,6 +63,7 @@ use freya::components::SvgViewer;
 use freya::prelude::*;
 
 use crate::core::CNExt;
+use crate::core::icon_context::IconColorContext;
 use crate::core::theme::use_cn_theme;
 
 /// A flexible SVG icon component.
@@ -83,6 +84,7 @@ use crate::core::theme::use_cn_theme;
 ///     .size_32()
 ///     .color(theme.primary);
 /// ```
+/// Colour inheritance: When placed inside a button (or any component that provides IconColorContext), the icon will automatically use the parent’s foreground colour unless explicitly overridden with .color().
 #[derive(PartialEq, Clone)]
 pub struct CNIcon {
     /// Raw SVG data (e.g., from `icons::lucide::heart()`).
@@ -330,8 +332,16 @@ impl Component for CNIcon {
         // Access the theme via the FreyaCN hook.
         let theme = use_cn_theme().read();
 
-        // Determine the colour: if explicitly set, use it; otherwise use theme.foreground.
-        let color = self.color.unwrap_or(theme.foreground);
+        let color = if let Some(color) = self.color {
+            // If the user explicitly set a colour, use it.
+            color
+        } else if let Some(ctx) = try_consume_context::<IconColorContext>() {
+            // Otherwise, if we're inside a button (or any provider), use that colour.
+            ctx.0
+        } else {
+            // Finally, fall back to the theme's foreground.
+            theme.foreground
+        };
 
         // Build the SvgViewer with the icon data, dimensions, and colour.
         SvgViewer::new(self.svg_data.clone())

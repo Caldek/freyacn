@@ -16,6 +16,7 @@
 //! ```
 
 use crate::core::CNExt;
+use crate::core::icon_context::IconColorContext;
 use crate::core::theme::use_cn_theme;
 use freya::prelude::{Button as ButtonPrimitive, *};
 
@@ -397,6 +398,9 @@ impl Component for CNButton {
         // Apply any user‑provided overrides.
         let final_bg = self.background.unwrap_or(bg);
         let final_text_color = self.text_color.unwrap_or(text_color);
+
+        // Provide the icon colour context so children (icons) can inherit this colour.
+        provide_context(IconColorContext(final_text_color));
         let final_hover_bg = if self.background.is_some() {
             hover_bg
         } else {
