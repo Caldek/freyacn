@@ -41,10 +41,19 @@ pub struct CNButton {
     focusable: bool,
 
     icon: Option<Element>,
+    icon_position: IconPosition,
     cursor_icon: CursorIcon,
 
     /// Explicit component background override.
     background: Option<Color>,
+    /// Explicit text color override.
+    text_color: Option<Color>,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum IconPosition {
+    Left,
+    Right,
 }
 
 impl Default for CNButton {
@@ -70,7 +79,7 @@ impl CNButton {
         Self {
             variant: ButtonVariant::Default,
             size: ButtonSize::Default,
-            corner_radius: 10.0, // default radius
+            corner_radius: 8.0,
             label: None,
             elements: Vec::new(),
 
@@ -84,14 +93,16 @@ impl CNButton {
             focusable: true,
 
             icon: None,
+            icon_position: IconPosition::Left,
             cursor_icon: CursorIcon::default(),
 
             background: None,
+            text_color: None,
         }
     }
 
     // ------------------------------------------------------------
-    // Button configuration
+    // Configuration
     // ------------------------------------------------------------
 
     pub fn variant(mut self, variant: ButtonVariant) -> Self {
@@ -136,65 +147,53 @@ impl CNButton {
     }
 
     // ------------------------------------------------------------
-    // Variants
+    // Variant shortcuts
     // ------------------------------------------------------------
 
     pub fn default(self) -> Self {
         self.variant(ButtonVariant::Default)
     }
-
     pub fn destructive(self) -> Self {
         self.variant(ButtonVariant::Destructive)
     }
-
     pub fn outline(self) -> Self {
         self.variant(ButtonVariant::Outline)
     }
-
     pub fn secondary(self) -> Self {
         self.variant(ButtonVariant::Secondary)
     }
-
     pub fn ghost(self) -> Self {
         self.variant(ButtonVariant::Ghost)
     }
-
     pub fn link(self) -> Self {
         self.variant(ButtonVariant::Link)
     }
 
     // ------------------------------------------------------------
-    // Sizes
+    // Size shortcuts
     // ------------------------------------------------------------
 
     pub fn size_default(self) -> Self {
         self.size(ButtonSize::Default)
     }
-
     pub fn size_xs(self) -> Self {
         self.size(ButtonSize::Xs)
     }
-
     pub fn size_sm(self) -> Self {
         self.size(ButtonSize::Sm)
     }
-
     pub fn size_lg(self) -> Self {
         self.size(ButtonSize::Lg)
     }
-
     pub fn size_icon(self) -> Self {
         self.size(ButtonSize::Icon)
     }
-
     pub fn size_icon_xs(self) -> Self {
         self.size(ButtonSize::IconXs)
     }
-
     pub fn size_icon_sm(self) -> Self {
         self.size(ButtonSize::IconSm)
     }
-
     pub fn size_icon_lg(self) -> Self {
         self.size(ButtonSize::IconLg)
     }
@@ -218,9 +217,23 @@ impl CNButton {
         self
     }
 
-    /// Set an icon for the button. The icon can be any Element, typically a FreyaCN `Icon` component.
+    /// Set an icon for the button.
+    /// Accepts any `Element` – typically a `Icon` component:
+    /// ```
+    /// Button::new().icon(Icon(icons::lucide::heart()).size_24())
+    /// ```
     pub fn icon(mut self, icon: impl Into<Element>) -> Self {
         self.icon = Some(icon.into());
+        self
+    }
+
+    pub fn icon_left(mut self) -> Self {
+        self.icon_position = IconPosition::Left;
+        self
+    }
+
+    pub fn icon_right(mut self) -> Self {
+        self.icon_position = IconPosition::Right;
         self
     }
 }
@@ -236,7 +249,7 @@ impl CornerRadiusExt for CNButton {
 }
 
 // ------------------------------------------------------------
-// FreyaCN extension trait (without theme() – it's not usable)
+// CNExt implementation – background and color overrides
 // ------------------------------------------------------------
 
 impl CNExt for CNButton {
@@ -244,6 +257,41 @@ impl CNExt for CNButton {
         self.background = Some(color);
         self
     }
+
+    fn color(mut self, color: Color) -> Self {
+        self.text_color = Some(color);
+        self
+    }
+}
+
+// ------------------------------------------------------------
+// Helpers – using Freya 0.4.1 API
+// ------------------------------------------------------------
+
+/// Create a color with a given alpha channel (0.0 – 1.0)
+fn color_with_alpha(color: Color, alpha: f32) -> Color {
+    let r = color.r();
+    let g = color.g();
+    let b = color.b();
+    let a = (alpha * 255.0) as u8;
+    Color::from_argb(a, r, g, b)
+}
+
+/// Blend two colors with a ratio (0.0 = base, 1.0 = blend)
+fn blend_colors(base: Color, blend: Color, ratio: f32) -> Color {
+    let r1 = base.r() as f32;
+    let g1 = base.g() as f32;
+    let b1 = base.b() as f32;
+    let a1 = base.a() as f32 / 255.0;
+    let r2 = blend.r() as f32;
+    let g2 = blend.g() as f32;
+    let b2 = blend.b() as f32;
+    let a2 = blend.a() as f32 / 255.0;
+    let r = r1 + (r2 - r1) * ratio;
+    let g = g1 + (g2 - g1) * ratio;
+    let b = b1 + (b2 - b1) * ratio;
+    let a = a1 + (a2 - a1) * ratio;
+    Color::from_argb((a * 255.0) as u8, r as u8, g as u8, b as u8)
 }
 
 // ------------------------------------------------------------
@@ -252,188 +300,137 @@ impl CNExt for CNButton {
 
 impl Component for CNButton {
     fn render(&self) -> impl IntoElement {
-        // Global FreyaCN theme.
         let theme: CNTheme = use_consume();
 
-        // Compute colors based on variant.
-        let (bg, hover_bg, border_color, text_color) = match self.variant {
-            ButtonVariant::Default => (
-                theme.primary,
-                theme.primary,
-                theme.primary,
-                theme.primary_foreground,
-            ),
-            ButtonVariant::Destructive => (
-                theme.destructive,
-                theme.destructive,
-                theme.destructive,
-                theme.destructive_foreground,
-            ),
+        // --- Compute variant colors (based on shadcn design) ---
+        let (bg, hover_bg, text_color, border_color) = match self.variant {
+            ButtonVariant::Default => {
+                let bg = theme.primary;
+                let hover = color_with_alpha(bg, 0.8);
+                (bg, hover, theme.primary_foreground, Color::TRANSPARENT)
+            }
+            ButtonVariant::Destructive => {
+                let bg = theme.destructive; // bg-destructive
+                let hover = color_with_alpha(theme.destructive, 0.8); // hover:bg-destructive/80
+                (bg, hover, theme.destructive_foreground, Color::TRANSPARENT) // text-destructive
+            }
             ButtonVariant::Outline => (
                 theme.background,
-                theme.accent,
+                theme.muted,
+                theme.foreground,
                 theme.border,
-                theme.foreground,
             ),
-            ButtonVariant::Secondary => (
-                theme.secondary,
-                theme.secondary,
-                theme.secondary,
-                theme.secondary_foreground,
-            ),
+            ButtonVariant::Secondary => {
+                let bg = theme.secondary;
+                let hover = blend_colors(bg, theme.foreground, 0.05);
+                (bg, hover, theme.secondary_foreground, Color::TRANSPARENT)
+            }
             ButtonVariant::Ghost => (
-                theme.background,
-                theme.accent,
-                theme.background,
+                Color::TRANSPARENT,
+                theme.muted,
                 theme.foreground,
+                Color::TRANSPARENT,
             ),
             ButtonVariant::Link => (
-                theme.background,
-                theme.background,
-                theme.background,
+                Color::TRANSPARENT,
+                Color::TRANSPARENT,
                 theme.primary,
+                Color::TRANSPARENT,
             ),
         };
 
-        let mut button = ButtonPrimitive::new();
+        // Override background and text color if explicitly set
+        let final_bg = self.background.unwrap_or(bg);
+        let final_text_color = self.text_color.unwrap_or(text_color);
+        let final_hover_bg = if self.background.is_some() {
+            hover_bg
+        } else {
+            hover_bg
+        };
 
-        let mut rectangle = rect()
+        // --- Size metrics (based on shadcn design) ---
+        let (height, padding_h, gap, font_size, icon_size, radius) = match self.size {
+            ButtonSize::Default => (32.0, 10.0, 6.0, 14.0, 16.0, self.corner_radius),
+            ButtonSize::Xs => (24.0, 8.0, 4.0, 12.0, 12.0, self.corner_radius.min(10.0)),
+            ButtonSize::Sm => (28.0, 10.0, 4.0, 12.8, 14.0, self.corner_radius.min(12.0)),
+            ButtonSize::Lg => (36.0, 10.0, 6.0, 14.0, 16.0, self.corner_radius),
+            ButtonSize::Icon => (32.0, 0.0, 0.0, 0.0, 20.0, self.corner_radius),
+            ButtonSize::IconXs => (24.0, 0.0, 0.0, 0.0, 14.0, self.corner_radius.min(10.0)),
+            ButtonSize::IconSm => (28.0, 0.0, 0.0, 0.0, 16.0, self.corner_radius.min(12.0)),
+            ButtonSize::IconLg => (36.0, 0.0, 0.0, 0.0, 24.0, self.corner_radius),
+        };
+
+        // --- Build Freya Button primitive ---
+        let mut button = ButtonPrimitive::new()
+            .enabled(self.enabled)
+            .focusable(self.focusable)
+            .cursor_icon(self.cursor_icon)
+            .corner_radius(radius)
+            .background(final_bg)
+            .hover_background(final_hover_bg)
+            .border_fill(border_color)
+            .color(final_text_color)
+            .padding(Gaps::new(0.0, padding_h, 0.0, padding_h))
+            .height(Size::px(height))
+            .width(Size::auto());
+
+        // For Link variant, ensure border is transparent
+        if self.variant == ButtonVariant::Link {
+            button = button.border_fill(Color::TRANSPARENT);
+        }
+
+        // --- Build content container ---
+        let mut content = rect()
             .horizontal()
             .cross_align(Alignment::Center)
-            .spacing(5.0)
+            .spacing(gap)
             .width(Size::auto())
             .height(Size::auto());
 
-        // Base properties.
-        button = button
-            .corner_radius(self.corner_radius)
-            .enabled(self.enabled)
-            .focusable(self.focusable)
-            .cursor_icon(self.cursor_icon);
+        // Icon element – wrap in a container with fixed size to enforce button's icon size
+        let icon_element = self.icon.as_ref().map(|icon| {
+            rect()
+                .height(Size::px(icon_size))
+                .width(Size::px(icon_size))
+                .child(icon.clone())
+        });
 
-        // Events.
-        if let Some(on_press) = self.on_press.clone() {
-            button = button.on_press(on_press);
-        }
-        if let Some(on_secondary_down) = self.on_secondary_down.clone() {
-            button = button.on_secondary_down(on_secondary_down);
-        }
-        if let Some(on_pointer_down) = self.on_pointer_down.clone() {
-            button = button.on_pointer_down(on_pointer_down);
-        }
-
-        // Apply variant colors.
-        button = button
-            .background(bg)
-            .hover_background(hover_bg)
-            .border_fill(border_color)
-            .color(text_color);
-
-        // Override background if explicitly set.
-        if let Some(background) = self.background {
-            button = button.background(background);
-        }
-
-        // For Link variant, remove borders and underline? The primitive might not support underline,
-        // but we can set a transparent border and maybe add underline via a separate label style.
-        if self.variant == ButtonVariant::Link {
-            button = button.border_fill(theme.background).outline();
-        }
-
-        // Size and padding.
-        button = match self.size {
-            ButtonSize::Default => button
-                .padding(Gaps::new(8., 10., 8., 10.))
-                .width(Size::auto())
-                .corner_radius(self.corner_radius),
-
-            ButtonSize::Xs => button
-                .padding(Gaps::new(6., 8., 6., 8.))
-                .width(Size::auto())
-                .corner_radius(self.corner_radius),
-
-            ButtonSize::Sm => button
-                .padding(Gaps::new(8., 10., 8., 10.))
-                .width(Size::auto())
-                .corner_radius(self.corner_radius),
-
-            ButtonSize::Lg => button
-                .padding(Gaps::new(8., 12., 8., 12.))
-                .width(Size::auto())
-                .corner_radius(self.corner_radius),
-
-            ButtonSize::Icon => button
-                .width(Size::px(36.))
-                .height(Size::px(36.))
-                .padding(Gaps::new_all(0.))
-                .corner_radius(self.corner_radius),
-
-            ButtonSize::IconXs => button
-                .width(Size::px(24.))
-                .height(Size::px(24.))
-                .padding(Gaps::new_all(0.))
-                .corner_radius(self.corner_radius),
-
-            ButtonSize::IconSm => button
-                .width(Size::px(32.))
-                .height(Size::px(32.))
-                .padding(Gaps::new_all(0.))
-                .corner_radius(self.corner_radius),
-
-            ButtonSize::IconLg => button
-                .width(Size::px(40.))
-                .height(Size::px(40.))
-                .padding(Gaps::new_all(0.))
-                .corner_radius(self.corner_radius),
-        };
-
-        // Determine font and icon sizes based on button size.
-        let (font_size, icon_size) = match self.size {
-            ButtonSize::Default => (14., 20.),
-            ButtonSize::Xs => (12., 14.),
-            ButtonSize::Sm => (12., 16.),
-            ButtonSize::Lg => (16., 24.),
-            ButtonSize::Icon => (14., 20.),
-            ButtonSize::IconXs => (12., 14.),
-            ButtonSize::IconSm => (12., 16.),
-            ButtonSize::IconLg => (16., 24.),
-        };
-
-        // Render label if present.
-        if let Some(label_text) = &self.label {
-            let label = label()
-                .text(label_text.clone())
-                .color(text_color) // use the variant's text color
+        // Label element
+        let label_element = self.label.as_ref().map(|text| {
+            let mut label = label()
+                .text(text.clone())
+                .color(final_text_color)
                 .font_size(font_size)
                 .font_weight(FontWeight::MEDIUM);
+            if self.variant == ButtonVariant::Link {
+                label = label.text_decoration(TextDecoration::Underline);
+            }
+            label
+        });
 
-            // Add underline for Link variant.
-            let label = if self.variant == ButtonVariant::Link {
-                label.text_decoration(TextDecoration::Underline)
-            } else {
-                label
-            };
-
-            rectangle = rectangle.child(label);
+        // Add children in correct order (icon left or right)
+        if self.icon_position == IconPosition::Left {
+            if let Some(el) = icon_element {
+                content = content.child(el);
+            }
+            if let Some(el) = label_element {
+                content = content.child(el);
+            }
+        } else {
+            if let Some(el) = label_element {
+                content = content.child(el);
+            }
+            if let Some(el) = icon_element {
+                content = content.child(el);
+            }
         }
 
-        // Render icon if present.
-        if let Some(icon) = &self.icon {
-            // Wrap icon in a container with the desired size.
-            rectangle = rectangle.child(
-                rect()
-                    .height(Size::px(icon_size))
-                    .width(Size::px(icon_size))
-                    .child(icon.clone()),
-            );
-        }
-
-        // User children.
+        // Add user children
         for element in &self.elements {
-            rectangle = rectangle.child(element.clone());
+            content = content.child(element.clone());
         }
 
-        button.child(rectangle)
+        button.child(content)
     }
 }
 

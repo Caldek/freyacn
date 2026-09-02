@@ -2,6 +2,7 @@ use freya::prelude::*;
 use freya_icons::lucide::arrow_left;
 
 use freyacn::components::button::Button;
+use freyacn::components::icon::Icon;
 use freyacn::core::theme::Theme as CNTheme;
 
 fn main() {
@@ -9,7 +10,7 @@ fn main() {
 }
 
 fn app() -> impl IntoElement {
-    let theme = CNTheme::neutral(false, "neutral");
+    let theme = CNTheme::neutral(true, "neutral");
 
     provide_root_context(theme);
 
@@ -26,11 +27,6 @@ fn app() -> impl IntoElement {
                 .child(Button().label("Small").size_sm())
                 .child(Button().label("Extra Small").destructive().size_xs())
                 .child(Button().label("Large").secondary().size_lg())
-                .child(
-                    Button()
-                        .label("Icon")
-                        .outline()
-                        .icon(SvgViewer::new(("arrow_left", arrow_left()))),
-                ),
+                .child(Button().label("Icon").size_icon().icon(Icon(arrow_left()))),
         )
 }
