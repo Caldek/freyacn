@@ -2,6 +2,12 @@
 name = "freyacn"
 version = "0.1.0"
 edition = "2024"
+description = "A Freya component library with Tailwind‑inspired extension traits for building beautiful, theme‑aware UIs."
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/Caldek/freyacn"
+readme = "README.md"
+keywords = ["gui", "freya", "ui", "components", "tailwind"]
+categories = ["gui", "development-tools"]
 
 [features]
 hotreload = ["freya/hotreload"]
