@@ -43,8 +43,8 @@ Add FreyaCN to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-freyacn = { git = "https://github.com/yourusername/freyacn" } # replace with your repo
-freya = "0.4.3"
+freyacn = { git = "https://github.com/Caldek/freyacn" } # replace with your repo
+freya = "0.4.1"
 ```
 
 In your `main.rs`:
