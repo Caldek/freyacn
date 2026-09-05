@@ -1,6 +1,6 @@
 [package]
 name = "freyacn"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "A Freya component library with Tailwind‑inspired extension traits for building beautiful, theme‑aware UIs."
 license = "MIT OR Apache-2.0"
