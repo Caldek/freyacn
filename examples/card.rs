@@ -7,12 +7,12 @@ use freya::components::ScrollView;
 use freya::prelude::*;
 use freya_icons::lucide::{bell, settings, user};
 
-use freyacn::components::button::Button;
-use freyacn::components::card::{
+use freyacn::components::Button;
+use freyacn::components::Icon;
+use freyacn::components::Label;
+use freyacn::components::{
     Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardSize, CardTitle,
 };
-use freyacn::components::icon::Icon;
-use freyacn::components::label::Label;
 use freyacn::extensions::*;
 use freyacn::theme::{Theme, use_init_cn_theme};
 

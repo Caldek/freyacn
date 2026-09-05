@@ -7,9 +7,9 @@ use freya::components::ScrollView;
 use freya::prelude::*;
 use freya_icons::lucide::{arrow_right, heart, settings};
 
+use freyacn::components::Icon;
+use freyacn::components::Label;
 use freyacn::components::button::{Button, CNButton};
-use freyacn::components::icon::Icon;
-use freyacn::components::label::Label;
 use freyacn::theme::{Theme, use_cn_theme, use_init_cn_theme};
 
 fn main() {
