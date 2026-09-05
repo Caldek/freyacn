@@ -80,6 +80,6 @@ fn scroll_row(buttons: Vec<CNButton>) -> impl IntoElement {
 
     ScrollView::new()
         .width(Size::fill())
-        .height(Size::px(60.0)) // fixed height to accommodate buttons
+        .height(Size::px(120.0)) // fixed height to accommodate buttons
         .child(row)
 }

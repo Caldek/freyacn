@@ -10,3 +10,4 @@ hotreload = ["freya/hotreload"]
 freya = { version = "0.4.1", features = ["icons"] }
 freya-core = "0.4.1"
 freya-icons = { version = "0.4.1", features = ["lucide"] }
+paste = "1.0.15"
