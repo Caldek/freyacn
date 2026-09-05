@@ -69,7 +69,7 @@
 //! - For more advanced corner radius control, use the [`corner_radius`] method
 //!   directly with a `CornerRadius` value.
 
-use crate::core::theme::use_cn_theme;
+use crate::theme::use_cn_theme;
 use freya::prelude::{Color, CornerRadius};
 
 /// An extension trait that adds Tailwind‑inspired border styling helpers.
