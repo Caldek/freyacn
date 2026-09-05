@@ -230,14 +230,10 @@ impl Component for Card {
             .color(self.color.unwrap_or(theme.card_foreground))
             .corner_radius(self.corner_radius.unwrap_or_else(|| 12.0.into()));
 
-        // Apply border if both width and color are set.
-        if let (Some(width), Some(color)) = (self.border_width, self.border_color) {
-            container = container.border(Border::new().fill(color).width(width));
-        } else {
-            // Default subtle border (ring-1 ring-foreground/10).
-            let border_color = Color::from_argb(25, 0, 0, 0); // ~10% opacity black
-            container = container.border(Border::new().fill(border_color).width(1.0));
-        }
+        // Apply border – use theme.border for the default.
+        let border_color = self.border_color.unwrap_or(theme.border);
+        let border_width = self.border_width.unwrap_or(1.0);
+        container = container.border(Border::new().fill(border_color).width(border_width));
 
         // Apply margin.
         if let Some(margin) = self.margin {
@@ -269,7 +265,7 @@ impl Component for Card {
             container = container.opacity(opacity);
         }
 
-        // Apply shadow.
+        // Apply shadow (user-provided only – no default shadow to keep it clean).
         if let Some(shadow) = self.shadow.clone() {
             container = container.shadow(shadow);
         }

@@ -21,7 +21,7 @@ fn main() {
 }
 
 fn app() -> impl IntoElement {
-    let theme = Theme::neutral(false, "slate");
+    let theme = Theme::neutral(false, "neutral");
     use_init_cn_theme(theme);
 
     // Main scrollable container.
